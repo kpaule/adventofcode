@@ -6,6 +6,7 @@
 mod rocket;
 
 use crate::rocket::{Module, Rocket};
+use std::time::Instant;
 use std::{
     fs::File,
     io::{BufRead, BufReader},
@@ -21,12 +22,21 @@ fn main() {
         rocket.load(Module::new(weight));
     }
 
-    println!("Totel fuel requirements: {}", rocket.fuel_requirement());
+    println!("Total fuel requirements: {}", rocket.fuel_requirement());
 
-    println!(
-        "Total fuel for fuel requirements: {}",
-        rocket.fuel_for_fuel_requirement()
-    );
+    println!("Starting no threading:");
+    let now = Instant::now();
+    let test = rocket.fuel_for_fuel_requirement();
+    let elapsed = now.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
+    println!("Total fuel for fuel requirements: {test}");
+
+    println!("Starting with threading:");
+    let now = Instant::now();
+    let test = rocket.fuel_for_fuel_requirement_async();
+    let elapsed = now.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
+    println!("Total fuel for fuel requirements: {test}");
 }
 
 fn read_lines(filename: impl AsRef<Path>) -> Vec<i32> {

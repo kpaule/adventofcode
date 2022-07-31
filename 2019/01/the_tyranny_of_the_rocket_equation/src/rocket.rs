@@ -28,6 +28,24 @@ impl Rocket {
         }
         total_fuel_req
     }
+
+    pub fn fuel_for_fuel_requirement_async(&self) -> i32 {
+        let result = crossbeam::scope(|scope| {
+            let mut handles = Vec::new();
+            for module in &self.modules {
+                let handle = scope.spawn(move |_| module.fuel_for_fuel_requirement());
+                handles.push(handle);
+            }
+
+            let mut result = 0;
+            for handle in handles {
+                result += handle.join().unwrap();
+            }
+            result
+        })
+        .unwrap();
+        result
+    }
 }
 
 pub struct Module {
