@@ -22,6 +22,11 @@ fn main() {
     }
 
     println!("Totel fuel requirements: {}", rocket.fuel_requirement());
+
+    println!(
+        "Total fuel for fuel requirements: {}",
+        rocket.fuel_for_fuel_requirement()
+    );
 }
 
 fn read_lines(filename: impl AsRef<Path>) -> Vec<i32> {
