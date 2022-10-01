@@ -1,3 +1,5 @@
+use futures::future::join_all;
+
 pub struct Rocket {
     modules: Vec<Module>,
 }
@@ -29,23 +31,20 @@ impl Rocket {
         total_fuel_req
     }
 
-    pub fn fuel_for_fuel_requirement_async(&self) -> i32 {
-        let result = crossbeam::scope(|scope| {
-            let mut handles = Vec::new();
-            for module in &self.modules {
-                let handle = scope.spawn(move |_| module.fuel_for_fuel_requirement());
-                handles.push(handle);
-            }
-
-            let mut result = 0;
-            for handle in handles {
-                result += handle.join().unwrap();
-            }
-            result
-        })
-        .unwrap();
-        result
+    pub async fn fuel_for_fuel_requirement_await(self) -> i32 {
+        let mut future_vec = Vec::new();
+        for module in self.modules {
+            let f = self::Rocket::calc_fuel(module);
+            future_vec.push(f);
+        }
+        let results = join_all(future_vec).await;
+        results.iter().sum() 
     }
+
+    async fn calc_fuel(module: Module) -> i32 {
+        module.fuel_for_fuel_requirement()
+    }
+
 }
 
 pub struct Module {
